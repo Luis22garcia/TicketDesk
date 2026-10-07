@@ -1,0 +1,1329 @@
+@TicketDesk.Api_HostAddress = https://localhost:7155
+
+### ========================================
+### OBTENER TODOS LOS TICKETS
+### ========================================
+
+GET {{TicketDesk.Api_HostAddress}}/api/Tickets
+Accept: application/json
+
+
+### ========================================
+### OBTENER TICKET POR ID
+### ========================================
+
+GET {{TicketDesk.Api_HostAddress}}/api/Tickets/4
+Accept: application/json
+
+
+### ========================================
+### CREAR UN TICKET
+### ========================================
+
+POST {{TicketDesk.Api_HostAddress}}/api/Tickets
+Content-Type: application/json
+
+{
+  "titulo": "El equipo no tiene conexión a Internet",
+  "descripcion": "El usuario reporta que su equipo no puede conectarse a la red.",
+  "prioridad": "Alta",
+  "usuarioId": 3,
+  "categoriaId": 3
+}
+
+
+### ========================================
+### ACTUALIZAR TICKET
+### ========================================
+
+PUT {{TicketDesk.Api_HostAddress}}/api/Tickets/4
+Content-Type: application/json
+
+{
+  "titulo": "El equipo sigue sin conexión",
+  "descripcion": "Soporte está revisando la conexión de red del equipo.",
+  "estado": "En proceso",
+  "prioridad": "Alta",
+  "usuarioId": 2,
+  "categoriaId": 3
+}
+###
+
+### ========================================
+### ELIMINAR TICKET
+### ========================================
+
+DELETE {{TicketDesk.Api_HostAddress}}/api/Tickets/4
+
+### ========================================
+### PROBAR VALIDACIÓN - PRIORIDAD INVÁLIDA
+### ========================================
+
+PUT {{TicketDesk.Api_HostAddress}}/api/Tickets/4
+Content-Type: application/json
+
+{
+  "titulo": "El equipo sigue sin conexión",
+  "descripcion": "Soporte está revisando la conexión de red del equipo.",
+  "estado": "En proceso",
+  "prioridad": "Urgente",
+  "usuarioId": 2,
+  "categoriaId": 3
+}
+
+### ========================================
+### PROBAR USUARIO INEXISTENTE
+### ========================================
+
+POST {{TicketDesk.Api_HostAddress}}/api/Tickets
+Content-Type: application/json
+
+{
+  "titulo": "Prueba de usuario inexistente",
+  "descripcion": "Este ticket no debería crearse.",
+  "prioridad": "Alta",
+  "usuarioId": 999,
+  "categoriaId": 3
+}
+
+  ### ========================================
+### PROBAR CATEGORÍA INEXISTENTE
+### ========================================
+
+POST {{TicketDesk.Api_HostAddress}}/api/Tickets
+Content-Type: application/json
+
+{
+  "titulo": "Prueba de categoría inexistente",
+  "descripcion": "Este ticket no debería crearse.",
+  "prioridad": "Alta",
+  "usuarioId": 3,
+  "categoriaId": 999
+}
+### ========================================
+### PROBAR PUT - USUARIO INEXISTENTE
+### ========================================
+
+PUT {{TicketDesk.Api_HostAddress}}/api/Tickets/4
+Content-Type: application/json
+
+{
+  "titulo": "El equipo sigue sin conexión",
+  "descripcion": "Soporte está revisando la conexión de red del equipo.",
+  "estado": "En proceso",
+  "prioridad": "Alta",
+  "usuarioId": 999,
+  "categoriaId": 3
+}
+### ========================================
+### PROBAR PUT - CATEGORÍA INEXISTENTE
+### ========================================
+
+PUT {{TicketDesk.Api_HostAddress}}/api/Tickets/4
+Content-Type: application/json
+
+{
+  "titulo": "El equipo sigue sin conexión",
+  "descripcion": "Soporte está revisando la conexión de red del equipo.",
+  "estado": "En proceso",
+  "prioridad": "Alta",
+  "usuarioId": 2,
+  "categoriaId": 999
+}
+
+  ### ========================================
+### GENERAR HASH ADMINISTRADOR
+### ========================================
+
+POST {{TicketDesk.Api_HostAddress}}/api/password-test
+Content-Type: application/json
+
+{
+  "password": "Admin123"
+}
+
+### ========================================
+### GENERAR HASH AGENTE
+### ========================================
+
+POST {{TicketDesk.Api_HostAddress}}/api/password-test
+Content-Type: application/json
+
+{
+  "password": "Soporte123"
+}
+### ========================================
+### GENERAR HASH USUARIO DEMO
+### ========================================
+
+POST {{TicketDesk.Api_HostAddress}}/api/password-test
+Content-Type: application/json
+
+{
+  "password": "Usuario123"
+} 
+### ========================================
+### LOGIN
+### ========================================
+
+POST {{TicketDesk.Api_HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@ticketdesk.com",
+  "password": "Admin123"
+}
+### ========================================
+### LOGIN CON JWT
+### ========================================
+
+POST {{TicketDesk.Api_HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@ticketdesk.com",
+  "password": "Admin123"
+}
+### ========================================
+### OBTENER TICKETS CON JWT
+### ========================================
+
+GET {{TicketDesk.Api_HostAddress}}/api/Tickets
+Authorization: Bearer  {{token}}
+Accept: application/json
+
+### ========================================
+### PRUEBA ROL ADMINISTRADOR
+### ========================================
+
+GET {{TicketDesk.Api_HostAddress}}/api/admin-test
+Authorization: Bearer  {{token}}
+Accept: application/json
+
+### ========================================
+### LOGIN USUARIO DEMO
+### ========================================
+
+POST {{TicketDesk.Api_HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "usuario@ticketdesk.com",
+  "password": "Usuario123"
+}
+### ========================================
+### PRUEBA ADMIN CON USUARIO NORMAL
+### ========================================
+
+GET {{TicketDesk.Api_HostAddress}}/api/admin-test
+Authorization: Bearer  {{token}}
+Accept: application/json
+
+@TicketDesk.Api_HostAddress = https://localhost:7155
+
+
+### ========================================
+### 1. LOGIN COMO ADMINISTRADOR
+### ========================================
+
+POST {{TicketDesk.Api_HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@ticketdesk.com",
+  "password": "Admin123"
+}
+
+
+### ========================================
+### 2. OBTENER TODOS LOS TICKETS
+GET {{TicketDesk.Api_HostAddress}}/api/Tickets
+Authorization: Bearer  {{token}}
+Accept: application/json
+
+
+### ========================================
+### 3. CREAR TICKET
+### ADMINISTRADOR
+### ========================================
+
+POST {{TicketDesk.Api_HostAddress}}/api/Tickets
+Authorization: Bearer  {{token}
+Content-Type: application/json
+
+{
+  "titulo": "Prueba de autorización",
+  "descripcion": "Ticket creado para comprobar permisos por rol.",
+  "prioridad": "Alta",
+  "usuarioId": 3,
+  "categoriaId": 2
+}
+
+
+### ========================================
+### 4. EDITAR TICKET
+### ADMINISTRADOR
+### ========================================
+
+PUT {{TicketDesk.Api_HostAddress}}/api/Tickets/4
+Authorization: Bearer  {{token}}
+Content-Type: application/json
+
+{
+  "titulo": "Ticket actualizado",
+  "descripcion": "Ticket actualizado desde la API.",
+  "estado": "En proceso",
+  "prioridad": "Alta",
+  "usuarioId": 3,
+  "categoriaId": 2
+}
+
+
+### ========================================
+### 5. ELIMINAR TICKET
+### ADMINISTRADOR
+### ========================================
+
+DELETE {{TicketDesk.Api_HostAddress}}/api/Tickets/4
+Authorization: Bearer {{token}}
+Accept: application/json
+
+
+### ========================================
+### 6. LOGIN COMO USUARIO
+### ========================================
+
+POST {{TicketDesk.Api_HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "usuario@ticketdesk.com",
+  "password": "Usuario123"
+}
+
+
+### ========================================
+### 7. USUARIO INTENTA EDITAR
+### DEBE DEVOLVER 403 FORBIDDEN
+### ========================================
+
+PUT {{TicketDesk.Api_HostAddress}}/api/Tickets/3
+Authorization: Bearer  {{token}}
+Content-Type: application/json
+
+{
+  "titulo": "Intento de modificación",
+  "descripcion": "El usuario está intentando modificar un ticket.",
+  "estado": "Resuelto",
+  "prioridad": "Media",
+  "usuarioId": 3,
+  "categoriaId": 2
+}
+
+
+### ========================================
+### 8. USUARIO INTENTA ELIMINAR
+### DEBE DEVOLVER 403 FORBIDDEN
+### ========================================
+
+DELETE {{TicketDesk.Api_HostAddress}}/api/Tickets/3
+Authorization: Bearer  {{token}}
+Accept: application/json
+
+###
+###
+
+GET {{TicketDesk.Api_HostAddress}}/api/Tickets
+Authorization: Bearer {{token}}
+Accept: application/json
+
+
+###
+
+GET {{TicketDesk.Api_HostAddress}}/api/Tickets/4
+Authorization: Bearer {{token}}
+Accept: application/json
+
+### ========================================
+### CREAR TICKET PERTENECIENTE AL AGENTE
+### ========================================
+
+POST {{TicketDesk.Api_HostAddress}}/api/Tickets
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "titulo": "Ticket privado del agente",
+  "descripcion": "Este ticket pertenece al Agente de Soporte.",
+  "prioridad": "Media",
+  "usuarioId": 2,
+  "categoriaId": 3
+}
+### ========================================
+### LOGIN COMO USUARIO DEMO
+### ========================================
+
+POST {{TicketDesk.Api_HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "usuario@ticketdesk.com",
+  "password": "Usuario123"
+}
+### ========================================
+### USUARIO INTENTA VER TICKET DEL AGENTE
+### ========================================
+
+GET {{TicketDesk.Api_HostAddress}}/api/Tickets/7
+Authorization: Bearer {{token}}
+Accept: application/json
+
+
+###
+
+POST {{TicketDesk.Api_HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "usuario@ticketdesk.com",
+  "password": "Usuario123"
+}
+
+###
+GET {{TicketDesk.Api_HostAddress}}/api/Tickets/7
+Authorization: Bearer {{token}}
+Accept: application/json
+
+### ADMIN - LISTAR USUARIOS
+
+GET {{TicketDesk.Api_HostAddress}}/api/Usuarios
+Authorization: Bearer {{token}}
+Accept: application/json
+
+### LOGIN - USUARIO DEMO
+
+POST {{TicketDesk.Api_HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "usuario@ticketdesk.com",
+  "password": "Usuario123"
+}
+### USUARIO - INTENTA LISTAR USUARIOS
+
+GET {{TicketDesk.Api_HostAddress}}/api/Usuarios
+Authorization: Bearer {{token}}
+Accept: application/json
+
+### ADMIN - CREAR USUARIO
+
+POST {{TicketDesk.Api_HostAddress}}/api/Usuarios
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "nombre": "Carlos López",
+  "email": "carlos@ticketdesk.com",
+  "password": "Carlos123",
+  "rol": "Agente"
+}
+
+### LOGIN - CARLOS
+
+POST {{TicketDesk.Api_HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "carlos@ticketdesk.com",
+  "password": "Carlos123"
+}
+
+### ADMIN - EDITAR USUARIO
+
+PUT {{TicketDesk.Api_HostAddress}}/api/Usuarios/4
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "nombre": "Carlos López Actualizado",
+  "email": "carlos@ticketdesk.com",
+  "rol": "Agente",
+  "activo": true
+}
+###
+
+GET {{TicketDesk.Api_HostAddress}}/api/Usuarios/4
+Authorization: Bearer {{token}}
+Accept: application/json 
+
+### ADMIN - DESACTIVAR USUARIO
+
+DELETE {{TicketDesk.Api_HostAddress}}/api/Usuarios/4
+Authorization: Bearer {{token}}
+
+### ADMIN - COMPROBAR USUARIO DESACTIVADO
+
+GET {{TicketDesk.Api_HostAddress}}/api/Usuarios/4
+Authorization: Bearer {{token}}
+Accept: application/json
+
+### USUARIO DESACTIVADO - INTENTA INICIAR SESIÓN
+
+POST {{TicketDesk.Api_HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "carlos@ticketdesk.com",
+  "password": "Carlos123"
+}
+
+
+### LOGIN - ADMIN
+
+POST {{TicketDesk.Api_HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@ticketdesk.com",
+  "password": "Admin123"
+}
+
+
+### ADMIN - LISTAR CATEGORÍAS
+
+GET {{TicketDesk.Api_HostAddress}}/api/Categorias
+Authorization: Bearer {{token}}
+Accept: application/json
+
+
+### LOGIN - USUARIO DEMO
+
+POST {{TicketDesk.Api_HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "usuario@ticketdesk.com",
+  "password": "Usuario123"
+}
+
+### USUARIO - INTENTA LISTAR CATEGORÍAS
+
+GET {{TicketDesk.Api_HostAddress}}/api/Categorias
+Authorization: Bearer {{token}}
+Accept: application/json
+
+### ADMIN - CREAR CATEGORÍA
+
+POST {{TicketDesk.Api_HostAddress}}/api/Categorias
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "nombre": "Impresoras",
+  "descripcion": "Problemas relacionados con impresoras y equipos de impresión."
+}
+
+### ADMIN - EDITAR CATEGORÍA
+
+PUT {{TicketDesk.Api_HostAddress}}/api/Categorias/6
+Authorization: Bearer {{token}} 
+Content-Type: application/json
+
+{
+  "nombre": "Impresoras y Escáneres",
+  "descripcion": "Problemas relacionados con impresoras, escáneres y equipos de impresión.",
+  "activa": true
+}
+### ADMIN - COMPROBAR CATEGORÍA ACTUALIZADA
+
+GET {{TicketDesk.Api_HostAddress}}/api/Categorias/6
+Authorization: Bearer {{token}}
+Accept: application/json
+
+### ADMIN - DESACTIVAR CATEGORÍA
+
+DELETE {{TicketDesk.Api_HostAddress}}/api/Categorias/6
+Authorization: Bearer  {{token}}
+
+### ADMIN - COMPROBAR CATEGORÍA DESACTIVADA
+
+GET {{TicketDesk.Api_HostAddress}}/api/Categorias/6
+Authorization: Bearer  {{token}}
+Accept: application/json
+
+### ADMIN - DASHBOARD
+
+GET {{TicketDesk.Api_HostAddress}}/api/Dashboard
+Authorization: Bearer {{token}}
+Accept: application/json
+
+### sesion con agente 
+
+POST {{TicketDesk.Api_HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "soporte@ticketdesk.com",
+  "password": "Soporte123"
+}
+
+### ### agente - DASHBOARD
+GET {{TicketDesk.Api_HostAddress}}/api/Dashboard
+Authorization: Bearer {{token}}
+Accept: application/json
+
+### usuario demo 
+POST {{TicketDesk.Api_HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "usuario@ticketdesk.com",
+  "password": "Usuario123"
+}
+
+
+
+### ### usuario demo - DASHBOAR
+GET {{TicketDesk.Api_HostAddress}}/api/Dashboard
+Authorization: Bearer {{token}}
+Accept: application/json
+
+### consulta ticker 7
+GET {{TicketDesk.Api_HostAddress}}/api/Tickets/7
+Authorization: Bearer  {{token}}
+Accept: application/json
+
+### put  Tickets 7
+
+PUT {{TicketDesk.Api_HostAddress}}/api/Tickets/7
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "titulo": "Ticket privado del agente",
+  "descripcion": "Este ticket pertenece al Agente de Soporte.",
+  "estado": "En proceso",
+  "prioridad": "Media",
+  "usuarioId": 2,
+  "categoriaId": 3,
+  "agenteId": 2
+}
+### login de agente 
+POST {{TicketDesk.Api_HostAddress}}/api/Auth/login
+Content-Type: application/json
+
+{
+  "email": "soporte@ticketdesk.com",
+  "password": "Soporte123"
+}
+### nuevo agente prueba del ticker 7
+PUT {{TicketDesk.Api_HostAddress}}/api/Tickets/7
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "titulo": "Ticket privado del agente",
+  "descripcion": "Este ticket pertenece al Agente de Soporte.",
+  "estado": "Resuelto",
+  "prioridad": "Media",
+  "usuarioId": 2,
+  "categoriaId": 3,
+  "agenteId": 2
+}
+
+
+### nuevo agente prueba del ticker 6
+PUT {{TicketDesk.Api_HostAddress}}/api/Tickets/6
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "titulo": "Prueba de autorización",
+  "descripcion": "Prueba de acceso del agente.",
+  "estado": "En proceso",
+  "prioridad": "Alta",
+  "usuarioId": 3,
+  "categoriaId": 2,
+  "agenteId": null
+}
+
+### LOGIN ADMINISTRADOR
+POST https://localhost:7155/api/Auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@ticketdesk.com",
+  "password": "Admin123"
+}
+
+
+### ASIGNAR TICKET #6 AL AGENTE ID 2
+PUT https://localhost:7155/api/Tickets/6/asignar
+Authorization: Bearer  {{token}}
+Content-Type: application/json
+
+{
+  "agenteId": 2
+}
+
+### CONSULTAR TICKET #6
+GET https://localhost:7155/api/Tickets/6
+Authorization: Bearer {{token}}
+
+### INTENTAR ASIGNAR TICKET COMO AGENTE
+PUT https://localhost:7155/api/Tickets/6/asignar
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "agenteId": 2
+}
+
+### VER TICKETS COMO AGENTE
+GET https://localhost:7155/api/Tickets
+Authorization: Bearer {{token}}
+
+### VER TICKETS COMO ADMINISTRADOR
+GET https://localhost:7155/api/Tickets
+Authorization: Bearer {{token}}
+
+### LOGIN AGENTE
+POST https://localhost:7155/api/Auth/login
+Content-Type: application/json
+
+{
+  "email": "soporte@ticketdesk.com",
+  "password": "Soporte123"
+}
+
+### CAMBIAR TICKET #6 A EN PROCESO
+PUT https://localhost:7155/api/Tickets/6
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "titulo": "Prueba de autorización",
+  "descripcion": "Ticket creado para comprobar permisos por rol.",
+  "estado": "En proceso",
+  "prioridad": "Alta",
+  "usuarioId": 3,
+  "categoriaId": 2,
+  "agenteId": 2
+}
+
+### CAMBIAR TICKET #6 A RESUELTO
+PUT https://localhost:7155/api/Tickets/6
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "titulo": "Prueba de autorización",
+  "descripcion": "Ticket creado para comprobar permisos por rol.",
+  "estado": "Resuelto",
+  "prioridad": "Alta",
+  "usuarioId": 3,
+  "categoriaId": 2,
+  "agenteId": 2
+}
+ ### INTENTAR CAMBIAR #6 DE RESUELTO A ABIERTO 
+
+PUT https://localhost:7155/api/Tickets/6
+Authorization: Bearer  {{token}}
+Content-Type: application/json
+
+{
+  "titulo": "Prueba de autorización",
+  "descripcion": "Ticket creado para comprobar permisos por rol.",
+  "estado": "Abierto",
+  "prioridad": "Alta",
+  "usuarioId": 3,
+  "categoriaId": 2,
+  "agenteId": 2
+}
+
+### Crear ticket para probar historial
+POST https://localhost:7155/api/Tickets
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "titulo": "Prueba de historial",
+  "descripcion": "Ticket creado para comprobar el historial de acciones.",
+  "prioridad": "Media",
+  "usuarioId": 3,
+  "categoriaId": 2
+}
+
+### Consultar historial del ticket #8
+GET https://localhost:7155/api/HistorialTickets/8
+Authorization: Bearer {{token}}
+
+### Cambiar ticket #8 a En proceso
+PUT https://localhost:7155/api/Tickets/8
+Authorization: Bearer  {{token}}
+Content-Type: application/json
+
+{
+  "titulo": "Prueba de historial",
+  "descripcion": "Ticket creado para comprobar el historial de acciones.",
+  "estado": "En proceso",
+  "prioridad": "Media",
+  "usuarioId": 3,
+  "categoriaId": 2,
+  "agenteId": 2
+}
+
+### Consultar historial del ticket #8
+GET https://localhost:7155/api/HistorialTickets/8
+Authorization: Bearer {{token}}
+
+### Reasignar ticket #8
+PUT https://localhost:7155/api/Tickets/8/asignar
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "agenteId": 2
+}
+
+### prueba ticket #8 
+GET https://localhost:7155/api/HistorialTickets/8
+Authorization: Bearer {{token}}
+
+### Agregar comentario al ticket #8
+POST https://localhost:7155/api/ComentariosTickets/8
+Authorization: Bearer  {{token}}
+Content-Type: application/json
+
+{
+  "contenido": "Se revisó el ticket y se inició el proceso de atención."
+}
+
+### Obtener comentarios del ticket #8
+GET https://localhost:7155/api/ComentariosTickets/8
+Authorization: Bearer {{token}}
+
+### Login Usuario Demo
+POST https://localhost:7155/api/Auth/login
+Content-Type: application/json
+
+{
+  "email": "usuario@ticketdesk.com",
+  "password": "Usuario123"
+}
+
+### Comentarios del ticket #8 como Usuario Demo
+GET https://localhost:7155/api/ComentariosTickets/8
+Authorization: Bearer {{token}}
+
+### Usuario Demo intenta ver comentarios del ticket #7
+
+GET https://localhost:7155/api/ComentariosTickets/7
+Authorization: Bearer {{token}}
+
+### Agregar comentario como Agente
+POST https://localhost:7155/api/ComentariosTickets/8
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "contenido": "Se revisó el incidente y se encontró la causa del problema."
+}
+### Ver comentarios del ticket #8
+GET https://localhost:7155/api/ComentariosTickets/8
+Authorization: Bearer  {{token}}
+
+### Obtener notificaciones del agente
+GET https://localhost:7155/api/Notificaciones
+Authorization: Bearer {{token}}
+
+### Marcar notificación #1 como leída
+PUT https://localhost:7155/api/Notificaciones/1/leer
+Authorization: Bearer  {{token}}
+
+### Ver notificaciones
+GET https://localhost:7155/api/Notificaciones
+Authorization: Bearer  {{token}}
+
+### Reasignar ticket #8
+PUT https://localhost:7155/api/Tickets/8/asignar
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "agenteId": 2
+}
+
+### Notificaciones del agente
+GET https://localhost:7155/api/Notificaciones
+Authorization: Bearer {{token}}
+
+### asignar nuevamente el ticket #8 al mismo agente
+PUT https://localhost:7155/api/Tickets/8/asignar
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+###
+PUT https://localhost:7155/api/Tickets/8/asignar
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "agenteId": 2
+}
+### 8
+PUT https://localhost:7155/api/Tickets/8/asignar 
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "agenteId": 2
+}
+###
+
+PUT https://localhost:7155/api/Tickets/8/asignar
+Authorization: Bearer  {{token}}
+Content-Type: application/json
+
+{
+  "agenteId": 2
+}
+
+
+### ========================================
+### LOGIN CON JWT
+### ========================================
+
+POST {{TicketDesk.Api_HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@ticketdesk.com",
+  "password": "Admin123"
+}
+
+### prueba escrita
+POST {{TicketDesk.Api_HostAddress}}/api/auth/login 
+Content-Type: application/json
+{
+  "email":"admin@ticketdesk.com",
+  "password": "Admin123"
+}
+
+### GET /api/Tickets/8
+
+
+GET {{TicketDesk.Api_HostAddress}}/api/Tickets/8
+Authorization: Bearer {{token}}
+
+### En proceso → Resuelto
+PUT {{TicketDesk.Api_HostAddress}}/api/Tickets/8
+Authorization: Bearer  {{token}} 
+Content-Type: application/json
+
+{
+  "titulo": "Prueba de historial",
+  "descripcion": "Ticket creado para comprobar el historial de acciones.",
+  "estado": "Resuelto",
+  "prioridad": "Media",
+  "usuarioId": 3,
+  "categoriaId": 2,
+  "agenteId": 2
+}
+
+### comprobaremos el historial
+GET {{TicketDesk.Api_HostAddress}}/api/HistorialTickets/8
+Authorization: Bearer  {{token}}
+
+### Usuario Demo y consulta
+GET {{TicketDesk.Api_HostAddress}}/api/Notificaciones
+Authorization: Bearer  {{token}}
+
+###Resuelto → Cerrado
+PUT {{TicketDesk.Api_HostAddress}}/api/Tickets/8
+Authorization: Bearer  {{token}} 
+Content-Type: application/json
+
+{
+  "titulo": "Prueba de historial",
+  "descripcion": "Ticket creado para comprobar el historial de acciones.",
+  "estado": "Cerrado",
+  "prioridad": "Media",
+  "usuarioId": 3,
+  "categoriaId": 2,
+  "agenteId": 2
+}
+
+### El ticket #8 ya está Cerrado
+PUT {{TicketDesk.Api_HostAddress}}/api/Tickets/8
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "titulo": "Prueba de historial",
+  "descripcion": "Ticket creado para comprobar el historial de acciones.",
+  "estado": "En proceso",
+  "prioridad": "Media",
+  "usuarioId": 3,
+  "categoriaId": 2,
+  "agenteId": 2
+}
+
+ ### LOGIN DE USUARIO DEMO 
+POST https://localhost:7155/api/Auth/login
+Content-Type: application/json
+
+{
+  "email": "usuario@ticketdesk.com",
+  "password": "Usuario123"
+}
+### USUARIO - VER HISTORIAL DE SU PROPIO TICKET USUARIO DEMO
+GET {{TicketDesk.Api_HostAddress}}/api/HistorialTickets/8
+Authorization: Bearer {{token}}
+
+### USUARIO - INTENTAR VER HISTORIAL DE TICKET AJENO DE DEMO 
+GET {{TicketDesk.Api_HostAddress}}/api/HistorialTickets/7
+Authorization: Bearer  {{token}}
+
+### LOGIN AGENTE
+POST https://localhost:7155/api/Auth/login
+Content-Type: application/json
+
+{
+  "email": "soporte@ticketdesk.com",
+  "password": "Soporte123"
+}
+
+### AGENTE - HISTORIAL DE TICKET ASIGNADO
+GET {{TicketDesk.Api_HostAddress}}/api/HistorialTickets/8
+Authorization: Bearer {{token}}
+
+### AGENTE - HISTORIAL DE TICKET NO ASIGNADO
+GET {{TicketDesk.Api_HostAddress}}/api/HistorialTickets/7
+Authorization: Bearer {{token}}
+
+### AGENTE - CONSULTAR TICKET #7
+GET {{TicketDesk.Api_HostAddress}}/api/Tickets/7
+Authorization: Bearer  {{token}}
+
+### AGENTE - CONSULTAR TICKET #6
+GET {{TicketDesk.Api_HostAddress}}/api/Tickets/6
+Authorization: Bearer {{token}}
+
+### AGENTE - LISTAR SUS TICKETS
+GET {{TicketDesk.Api_HostAddress}}/api/Tickets
+Authorization: Bearer {{token}}
+
+### ADMIN - LISTAR TODOS LOS TICKETS
+GET {{TicketDesk.Api_HostAddress}}/api/Tickets
+Authorization: Bearer {{token}}
+
+### AGENTE - HISTORIAL DE TICKET NO ASIGNADO
+GET {{TicketDesk.Api_HostAddress}}/api/HistorialTickets/2
+Authorization: Bearer  {{token}}
+
+### LOGIN ADMINISTRADOR
+POST https://localhost:7155/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@ticketdesk.com",
+  "password": "Admin123"
+}
+
+### ADMIN - AGREGAR COMENTARIO AL TICKET 8
+POST https://localhost:7155/api/ComentariosTickets/8
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "contenido": "Comentario realizado por el administrador para validar permisos."
+}
+
+### ADMIN - CONSULTAR COMENTARIOS DEL TICKET 8
+GET https://localhost:7155/api/ComentariosTickets/8
+Authorization: Bearer  {{token}}
+
+### LOGIN - USUARIO DEMO
+POST {{TicketDesk.Api_HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "usuario@ticketdesk.com",
+  "password": "Usuario123"
+}
+
+### USUARIO - INTENTAR COMENTAR TICKET AJENO #7
+POST {{TicketDesk.Api_HostAddress}}/api/ComentariosTickets/7
+Authorization: Bearer   {{token}}
+Content-Type: application/json
+
+{
+  "contenido": "Intento de comentario en un ticket que no me pertenece."
+}
+
+ ### LOGIN - AGENTE
+POST {{TicketDesk.Api_HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "soporte@ticketdesk.com",
+  "password": "Soporte123"
+}
+
+### AGENTE - INTENTAR COMENTAR TICKET NO ASIGNADO #2
+POST {{TicketDesk.Api_HostAddress}}/api/ComentariosTickets/2
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "contenido": "Intento de comentario en un ticket que no tengo asignado."
+}
+
+### AGENTE - COMENTARIO VACÍO
+POST {{TicketDesk.Api_HostAddress}}/api/ComentariosTickets/8
+Authorization: Bearer  {{token}}
+Content-Type: application/json
+
+{
+  "contenido": ""
+}
+
+### AGENTE - COMENTARIO MÁS DE 1000 CARACTERES
+POST {{TicketDesk.Api_HostAddress}}/api/ComentariosTickets/8
+Authorization: Bearer  {{token}}
+Content-Type: application/json
+
+{
+  "contenido": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+}
+ 
+### LOGIN ADMINISTRADOR
+POST https://localhost:7155/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@ticketdesk.com",
+  "password": "Admin123"
+}
+### ADMIN - OBTENER NOTIFICACIONES
+GET https://localhost:7155/api/Notificaciones
+Authorization: Bearer {{token}}
+
+### LOGIN AGENTE 
+POST https://localhost:7155/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "soporte@ticketdesk.com",
+  "password": "Soporte123"
+}
+### AGENTE - OBTENER NOTIFICACIONES
+GET https://localhost:7155/api/Notificaciones
+Authorization: Bearer  {{token}}
+
+### LOGIN - USUARIO 
+POST https://localhost:7155/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "usuario@ticketdesk.com",
+  "password": "Usuario123"
+}
+### USUARIO — Obtener sus notificaciones
+GET https://localhost:7155/api/Notificaciones
+Authorization: Bearer  {{token}}
+
+### |mira las notificaciones del agente
+GET https://localhost:7155/api/Notificaciones
+Authorization: Bearer  {{token}}
+
+### MARCAR UNA NOTIFICACIÓN COMO LEÍDA
+
+PUT https://localhost:7155/api/Notificaciones/2/leer
+Authorization: Bearer {{token}}
+
+### VERIFICAR QUE CAMBIÓ A LEÍDA
+GET https://localhost:7155/api/Notificaciones
+Authorization: Bearer  {{token}}
+
+### SEGURIDAD — AGENTE INTENTA LEER NOTIFICACIÓN DE OTRO USUARIO
+PUT https://localhost:7155/api/Notificaciones/3/leer
+Authorization: Bearer {{token}}
+
+### USUARIO DEMO  — COMPROBAR NOTIFICACIÓN
+GET https://localhost:7155/api/Notificaciones
+Authorization: Bearer {{token}}
+
+### USUARIO DEMO  — MARCAR SU PROPIA NOTIFICACIÓN
+PUT https://localhost:7155/api/Notificaciones/4/leer
+Authorization: Bearer {{token}}
+
+### USUARIO DEMO  — VERIFICAR  NOTIFICACIÓN LEIDA 
+GET https://localhost:7155/api/Notificaciones
+Authorization: Bearer {{token}}
+
+### MARCAR TODAS COMO LEIDAS AGENTE 
+PUT https://localhost:7155/api/Notificaciones/leer-todas
+Authorization: Bearer {{token}}
+
+### VERIFICAR TODAS COMO LEIDAS AGENTE 
+GET https://localhost:7155/api/Notificaciones
+Authorization: Bearer  {{token}}
+
+### MARCAR COMO LEIDAS TODAS - USUARIO 
+PUT https://localhost:7155/api/Notificaciones/leer-todas
+Authorization: Bearer {{token}}
+
+### VERIFICAR TODAS COMO LEIDAS -USUARIO DEMO
+GET https://localhost:7155/api/Notificaciones
+Authorization: Bearer {{token}}
+
+### GET NOTIFICACIONES SIN TOKEN 
+GET https://localhost:7155/api/Notificaciones
+
+### MARCAR NOTIFICACION SIN TOKEN 
+GET https://localhost:7155/api/Notificaciones
+
+### MARCAR TODAS SIN TOKEN 
+PUT https://localhost:7155/api/Notificaciones/leer-todas
+
+### endpoint sin lwt 
+GET https://localhost:7155/api/Notificaciones
+
+### JWT inválido
+GET https://localhost:7155/api/Notificaciones
+Authorization: Bearer {{token}}
+
+####. Usuario intentando endpoint exclusivo de Admin
+GET https://localhost:7155/api/Usuarios
+Authorization: Bearer {{token}}
+
+### Agente intentando endpoint exclusivo de Admin
+GET https://localhost:7155/api/Usuarios
+Authorization: Bearer {{token}}
+
+### login correcto administrador 
+POST https://localhost:7155/api/auth/login
+Content-Type: application/json
+{
+  "email": "admin@ticketdesk.com",
+  "password": "Admin123"
+}
+### login correcto del agente 
+POST https://localhost:7155/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "soporte@ticketdesk.com",
+  "password": "Soporte123"
+}
+### login correcto de usuario 
+POST https://localhost:7155/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "usuario@ticketdesk.com",
+  "password": "Usuario123"
+}
+
+### login de admin contraseña incorrecta 
+POST https://localhost:7155/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@ticketdesk.com",
+  "password": "ContraseñaIncorrecta"
+}
+
+### login de correo inexistente
+POST https://localhost:7155/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "noexiste@ticketdesk.com",
+  "password": "Cualquier123"
+}
+
+### login de usuario inactivo 
+POST https://localhost:7155/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "carlos@ticketdesk.com",
+  "password": "Carlos123"
+} 
+
+### login  con email vacio
+POST https://localhost:7155/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "",
+  "password": "Admin123"
+}
+
+### login con contraseña vacia 
+POST https://localhost:7155/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@ticketdesk.com",
+  "password": ""
+}
+### login con formato invalido 
+POST https://localhost:7155/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "correo-invalido",
+  "password": "Admin123"
+}
+
+## verificacion jwt nuevamente 
+POST https://localhost:7155/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@ticketdesk.com",
+  "password": "Admin123"
+}
+
+### verificar endpoint protegido con jwt con el token del admin
+GET https://localhost:7155/api/Tickets
+Authorization: Bearer {{token}}
+
+
+### verificar permisos por roles usuario
+GET https://localhost:7155/api/Usuarios
+Authorization: Bearer    {{token}}
+
+### verificar permisos por roles agente 
+GET https://localhost:7155/api/Usuarios
+Authorization: Bearer   {{token}}
+
+### prueba de swagger admin 
+GET https://localhost:7155/api/Usuarios 
+Authorization: Bearer   {{token}}
+
+
+### prueba de swagger agente  
+GET https://localhost:7155/api/Usuarios 
+Authorization: Bearer  {{token}}
+
+### prueba de swagger usuario  
+GET https://localhost:7155/api/Usuarios 
+Authorization: Bearer {{token}}
+
+### prueba de swagger sin token valido
+GET https://localhost:7155/api/Usuarios 
+Authorization: Bearer novalido 
+
+
+
+
+
+
+
+
+

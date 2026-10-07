@@ -1,0 +1,20 @@
+﻿# Visual Studio
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Compilación .NET
+**/bin/
+**/obj/
+TestResults/
+
+# Configuración y secretos locales
+.env
+.env.*
+secrets.json
+**/appsettings.Development.json
+
+# Logs
+*.log
