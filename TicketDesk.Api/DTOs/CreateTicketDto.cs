@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿
+using System.ComponentModel.DataAnnotations;
 
 namespace TicketDesk.Api.DTOs;
 
@@ -20,7 +21,7 @@ public class CreateTicketDto
     public string Prioridad { get; set; } = "Media";
 
     [Range(1, int.MaxValue, ErrorMessage = "Debes seleccionar un usuario válido.")]
-    public int UsuarioId { get; set; }
+    public int? UsuarioId { get; set; }
 
     [Range(1, int.MaxValue, ErrorMessage = "Debes seleccionar una categoría válida.")]
     public int CategoriaId { get; set; }

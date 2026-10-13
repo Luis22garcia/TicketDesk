@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿
+using Microsoft.EntityFrameworkCore;
 using TicketDesk.Api.Models;
 
 namespace TicketDesk.Api.Data;
@@ -16,6 +17,9 @@ public class TicketDeskDbContext : DbContext
     public DbSet<HistorialTicket> HistorialTickets { get; set; }
     public DbSet<ComentarioTicket> ComentariosTickets { get; set; }
     public DbSet<Notificacion> Notificaciones { get; set; }
+
+    // Tokens para recuperación de contraseña
+    public DbSet<PasswordResetToken> PasswordResetTokens { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -83,6 +87,18 @@ public class TicketDeskDbContext : DbContext
             .WithMany()
             .HasForeignKey(n => n.TicketId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        // Relación PasswordResetToken - Usuario
+        modelBuilder.Entity<PasswordResetToken>()
+            .HasOne(t => t.Usuario)
+            .WithMany()
+            .HasForeignKey(t => t.UsuarioId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // Índice para buscar tokens por su hash
+        modelBuilder.Entity<PasswordResetToken>()
+            .HasIndex(t => t.TokenHash)
+            .IsUnique();
 
         // Categorías iniciales
         modelBuilder.Entity<Categoria>().HasData(

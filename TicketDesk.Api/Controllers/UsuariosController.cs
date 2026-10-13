@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 using TicketDesk.Api.Data;
 using TicketDesk.Api.DTOs;
 using TicketDesk.Api.Services;
@@ -80,6 +81,7 @@ public class UsuariosController : ControllerBase
 
     // ========================================
     // POST: api/usuarios
+    // Crear usuario
     // Solo Administrador
     // ========================================
 
@@ -102,7 +104,7 @@ public class UsuariosController : ControllerBase
             });
         }
 
-        var usuario = new Models.Usuario
+        var usuario = new TicketDesk.Api.Models.Usuario
         {
             Nombre = dto.Nombre,
             Email = dto.Email,
@@ -133,7 +135,9 @@ public class UsuariosController : ControllerBase
 
     // ========================================
     // PUT: api/usuarios/1
+    // Actualizar datos del usuario
     // Solo Administrador
+    // La contraseña no se modifica aquí.
     // ========================================
 
     [HttpPut("{id}")]
@@ -181,11 +185,47 @@ public class UsuariosController : ControllerBase
     }
 
     // ========================================
-    // DELETE: api/usuarios/1
+    // PUT: api/usuarios/1/password
+    // Cambiar contraseña de un usuario
     // Solo Administrador
-    //
-    // No eliminamos físicamente.
-    // Desactivamos el usuario.
+    // ========================================
+
+    [HttpPut("{id}/password")]
+    public async Task<IActionResult> CambiarPassword(
+        int id,
+        [FromBody] CambiarPasswordUsuarioDto dto)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        var usuario = await _context.Usuarios
+            .FindAsync(id);
+
+        if (usuario == null)
+        {
+            return NotFound(new
+            {
+                mensaje = "El usuario no existe."
+            });
+        }
+
+        usuario.PasswordHash =
+            _passwordService.HashPassword(dto.NuevaPassword);
+
+        await _context.SaveChangesAsync();
+
+        return Ok(new
+        {
+            mensaje = "La contraseña se actualizó correctamente."
+        });
+    }
+
+    // ========================================
+    // DELETE: api/usuarios/1
+    // Desactivar usuario
+    // Solo Administrador
     // ========================================
 
     [HttpDelete("{id}")]
@@ -208,4 +248,15 @@ public class UsuariosController : ControllerBase
 
         return NoContent();
     }
+}
+
+// ========================================
+// DTO para cambiar la contraseña de un usuario
+// ========================================
+
+public class CambiarPasswordUsuarioDto
+{
+    [Required(ErrorMessage = "La nueva contraseña es obligatoria.")]
+    [MinLength(6, ErrorMessage = "La contraseña debe tener al menos 6 caracteres.")]
+    public string NuevaPassword { get; set; } = string.Empty;
 }

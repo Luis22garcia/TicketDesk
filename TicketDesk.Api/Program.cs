@@ -1,3 +1,4 @@
+
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -6,6 +7,21 @@ using TicketDesk.Api.Data;
 using TicketDesk.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// ========================================
+// CORS
+// ========================================
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("ReactPolicy", policy =>
+    {
+        policy
+            .WithOrigins("http://localhost:5173")
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
 
 // ========================================
 // BASE DE DATOS
@@ -25,25 +41,41 @@ builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<TicketStatusService>();
 
 // ========================================
+// CORREO ELECTRÓNICO (GMAIL SMTP)
+// ========================================
+
+builder.Services.Configure<EmailSettings>(
+    builder.Configuration.GetSection("Email:Smtp")
+);
+
+builder.Services.AddScoped<IEmailService, EmailService>();
+
+// ========================================
 // AUTENTICACIÓN JWT
 // ========================================
 
 var jwtKey = builder.Configuration["Jwt:Key"]
-    ?? throw new InvalidOperationException("La clave JWT no está configurada.");
+    ?? throw new InvalidOperationException(
+        "La clave JWT no está configurada."
+    );
 
 var jwtIssuer = builder.Configuration["Jwt:Issuer"];
 var jwtAudience = builder.Configuration["Jwt:Audience"];
 
 builder.Services.AddAuthentication(options =>
 {
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultAuthenticateScheme =
+        JwtBearerDefaults.AuthenticationScheme;
+
+    options.DefaultChallengeScheme =
+        JwtBearerDefaults.AuthenticationScheme;
 })
 .AddJwtBearer(options =>
 {
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuerSigningKey = true,
+
         IssuerSigningKey = new SymmetricSecurityKey(
             Encoding.UTF8.GetBytes(jwtKey)
         ),
@@ -83,6 +115,9 @@ if (app.Environment.IsDevelopment())
 // ========================================
 
 app.UseHttpsRedirection();
+
+// CORS
+app.UseCors("ReactPolicy");
 
 app.UseAuthentication();
 

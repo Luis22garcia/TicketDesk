@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.IdentityModel.Tokens.Jwt;
@@ -21,96 +22,219 @@ public class ComentariosTicketsController : ControllerBase
         _context = context;
     }
 
+    // MÉTODO AUXILIAR - OBTENER EL ID DEL USUARIO AUTENTICADO
+    private bool TryGetAuthenticatedUserId(out int usuarioId)
+    {
+        var usuarioIdClaim =
+            User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (string.IsNullOrWhiteSpace(usuarioIdClaim))
+        {
+            usuarioIdClaim =
+                User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+        }
+
+        return int.TryParse(usuarioIdClaim, out usuarioId);
+    }
+
+    // MÉTODO AUXILIAR - OBTENER EL ROL DEL USUARIO
+    private string? ObtenerRol()
+    {
+        return User.FindFirst(ClaimTypes.Role)?.Value;
+    }
+
+    // MÉTODO AUXILIAR - VERIFICAR PERMISOS SOBRE EL TICKET
+    private bool TienePermisoSobreTicket(
+        Ticket ticket,
+        string? rol,
+        int usuarioId)
+    {
+        if (rol == "Administrador")
+        {
+            return true;
+        }
+
+        if (rol == "Usuario")
+        {
+            return ticket.UsuarioId == usuarioId;
+        }
+
+        if (rol == "Agente")
+        {
+            return ticket.AgenteId == usuarioId;
+        }
+
+        return false;
+    }
+
+    // MÉTODO AUXILIAR - CREAR NOTIFICACIÓN
+    private void AgregarNotificacion(
+        int destinatarioId,
+        int autorId,
+        int ticketId,
+        string mensaje)
+    {
+        // Evitar que el autor reciba su propia notificación.
+        if (destinatarioId == autorId)
+        {
+            return;
+        }
+
+        _context.Notificaciones.Add(new Notificacion
+        {
+            UsuarioId = destinatarioId,
+            TicketId = ticketId,
+            Mensaje = mensaje,
+            Leida = false,
+            Fecha = DateTime.Now
+        });
+    }
+
+    // MÉTODO AUXILIAR - OBTENER ADMINISTRADORES ACTIVOS
+    private async Task<List<int>> ObtenerAdministradoresActivosAsync()
+    {
+        return await _context.Usuarios
+            .AsNoTracking()
+            .Where(u =>
+                u.Rol == "Administrador" &&
+                u.Activo)
+            .Select(u => u.Id)
+            .ToListAsync();
+    }
+
+    // MÉTODO AUXILIAR - CREAR NOTIFICACIONES SEGÚN EL ROL
+    private async Task NotificarNuevoComentarioAsync(
+        Ticket ticket,
+        int autorId,
+        string? rol,
+        string contenido)
+    {
+        // Evitar notificaciones excesivamente largas.
+        var fragmento = contenido.Trim();
+
+        if (fragmento.Length > 120)
+        {
+            fragmento = fragmento[..120] + "...";
+        }
+
+        var mensaje =
+            $"Nuevo comentario en el ticket #{ticket.Id}: " +
+            $"{ticket.Titulo}. Comentario: {fragmento}";
+
+        if (rol == "Usuario")
+        {
+            // Notificar al agente asignado.
+            if (ticket.AgenteId.HasValue)
+            {
+                AgregarNotificacion(
+                    ticket.AgenteId.Value,
+                    autorId,
+                    ticket.Id,
+                    mensaje);
+            }
+
+            // Notificar a los administradores activos.
+            var administradores =
+                await ObtenerAdministradoresActivosAsync();
+
+            foreach (var administradorId in administradores)
+            {
+                AgregarNotificacion(
+                    administradorId,
+                    autorId,
+                    ticket.Id,
+                    mensaje);
+            }
+        }
+        else if (rol == "Agente")
+        {
+            // Notificar al usuario propietario del ticket.
+            AgregarNotificacion(
+                ticket.UsuarioId,
+                autorId,
+                ticket.Id,
+                mensaje);
+
+            // Notificar a los administradores activos.
+            var administradores =
+                await ObtenerAdministradoresActivosAsync();
+
+            foreach (var administradorId in administradores)
+            {
+                AgregarNotificacion(
+                    administradorId,
+                    autorId,
+                    ticket.Id,
+                    mensaje);
+            }
+        }
+        else if (rol == "Administrador")
+        {
+            // Notificar al usuario propietario del ticket.
+            AgregarNotificacion(
+                ticket.UsuarioId,
+                autorId,
+                ticket.Id,
+                mensaje);
+
+            // Notificar al agente asignado, si existe.
+            if (ticket.AgenteId.HasValue)
+            {
+                AgregarNotificacion(
+                    ticket.AgenteId.Value,
+                    autorId,
+                    ticket.Id,
+                    mensaje);
+            }
+        }
+    }
+
     // POST - AGREGAR COMENTARIO
-    [HttpPost("{ticketId}")]
+    [HttpPost("{ticketId:int}")]
     [Authorize(Roles = "Administrador,Agente,Usuario")]
     public async Task<IActionResult> CrearComentario(
         int ticketId,
         [FromBody] CreateComentarioDto dto)
     {
+        if (dto == null)
+        {
+            return BadRequest(new
+            {
+                mensaje = "Los datos del comentario son obligatorios."
+            });
+        }
+
         if (!ModelState.IsValid)
         {
             return BadRequest(ModelState);
         }
 
-        // Verificar que el ticket exista
-        var ticket = await _context.Tickets
-            .FindAsync(ticketId);
-
-        if (ticket == null)
+        if (string.IsNullOrWhiteSpace(dto.Contenido))
         {
-            return NotFound(new
+            return BadRequest(new
             {
-                mensaje = "El ticket no existe."
+                mensaje = "El comentario no puede estar vacío."
             });
         }
 
-        // Obtener el usuario autenticado desde el JWT
-        var usuarioIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-        if (string.IsNullOrEmpty(usuarioIdClaim))
-        {
-            usuarioIdClaim = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
-        }
-
-        if (!int.TryParse(usuarioIdClaim, out var usuarioId))
+        if (!TryGetAuthenticatedUserId(out var usuarioId))
         {
             return Unauthorized(new
             {
-                mensaje = "No se pudo identificar al usuario autenticado."
+                mensaje =
+                    "No se pudo identificar al usuario autenticado."
             });
         }
 
-        // Obtener el rol del usuario
-        var rol = User.FindFirst(ClaimTypes.Role)?.Value;
+        var rol = ObtenerRol();
 
-        // Usuario solamente puede comentar sus propios tickets
-        if (rol == "Usuario" && ticket.UsuarioId != usuarioId)
+        if (rol != "Administrador" &&
+            rol != "Agente" &&
+            rol != "Usuario")
         {
             return Forbid();
         }
 
-        // Agente solamente puede comentar tickets asignados a él
-        if (rol == "Agente" && ticket.AgenteId != usuarioId)
-        {
-            return Forbid();
-        }
-
-        // Crear comentario
-        var comentario = new ComentarioTicket
-        {
-            TicketId = ticketId,
-            UsuarioId = usuarioId,
-            Contenido = dto.Contenido,
-            Fecha = DateTime.Now
-        };
-
-        _context.ComentariosTickets.Add(comentario);
-
-        await _context.SaveChangesAsync();
-
-        // Obtener el nombre del usuario
-        var usuario = await _context.Usuarios
-            .FirstOrDefaultAsync(u => u.Id == usuarioId);
-
-        return Ok(new
-        {
-            mensaje = "Comentario agregado correctamente.",
-            id = comentario.Id,
-            ticketId = comentario.TicketId,
-            usuarioId = comentario.UsuarioId,
-            usuarioNombre = usuario?.Nombre ?? "Usuario desconocido",
-            contenido = comentario.Contenido,
-            fecha = comentario.Fecha
-        });
-    }
-
-    // GET - OBTENER COMENTARIOS DE UN TICKET
-    [HttpGet("{ticketId}")]
-    [Authorize(Roles = "Administrador,Agente,Usuario")]
-    public async Task<IActionResult> ObtenerComentarios(int ticketId)
-    {
-        // Verificar que el ticket exista
         var ticket = await _context.Tickets
             .FirstOrDefaultAsync(t => t.Id == ticketId);
 
@@ -122,40 +246,99 @@ public class ComentariosTicketsController : ControllerBase
             });
         }
 
-        // Obtener usuario autenticado
-        var usuarioIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-        if (string.IsNullOrEmpty(usuarioIdClaim))
-        {
-            usuarioIdClaim = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
-        }
-
-        if (!int.TryParse(usuarioIdClaim, out var usuarioId))
-        {
-            return Unauthorized(new
-            {
-                mensaje = "No se pudo identificar al usuario autenticado."
-            });
-        }
-
-        var rol = User.FindFirst(ClaimTypes.Role)?.Value;
-
-        // Usuario solamente puede ver comentarios de sus propios tickets
-        if (rol == "Usuario" && ticket.UsuarioId != usuarioId)
+        // Comprobar que el usuario tenga acceso al ticket.
+        if (!TienePermisoSobreTicket(ticket, rol, usuarioId))
         {
             return Forbid();
         }
 
-        // Agente solamente puede ver comentarios de tickets asignados a él
-        if (rol == "Agente" && ticket.AgenteId != usuarioId)
+        var contenido = dto.Contenido.Trim();
+        var fechaActual = DateTime.Now;
+
+        var comentario = new ComentarioTicket
+        {
+            TicketId = ticketId,
+            UsuarioId = usuarioId,
+            Contenido = contenido,
+            Fecha = fechaActual
+        };
+
+        _context.ComentariosTickets.Add(comentario);
+
+        // Crear las notificaciones según el rol del autor.
+        await NotificarNuevoComentarioAsync(
+            ticket,
+            usuarioId,
+            rol,
+            contenido);
+
+        // Guardar comentario y notificaciones.
+        await _context.SaveChangesAsync();
+
+        var usuarioNombre = await _context.Usuarios
+            .AsNoTracking()
+            .Where(u => u.Id == usuarioId)
+            .Select(u => u.Nombre)
+            .FirstOrDefaultAsync();
+
+        return Ok(new
+        {
+            mensaje = "Comentario agregado correctamente.",
+            id = comentario.Id,
+            ticketId = comentario.TicketId,
+            usuarioId = comentario.UsuarioId,
+            usuarioNombre = usuarioNombre ?? "Usuario desconocido",
+            contenido = comentario.Contenido,
+            fecha = comentario.Fecha
+        });
+    }
+
+    // GET - OBTENER COMENTARIOS DE UN TICKET
+    [HttpGet("{ticketId:int}")]
+    [Authorize(Roles = "Administrador,Agente,Usuario")]
+    public async Task<IActionResult> ObtenerComentarios(int ticketId)
+    {
+        if (!TryGetAuthenticatedUserId(out var usuarioId))
+        {
+            return Unauthorized(new
+            {
+                mensaje =
+                    "No se pudo identificar al usuario autenticado."
+            });
+        }
+
+        var rol = ObtenerRol();
+
+        if (rol != "Administrador" &&
+            rol != "Agente" &&
+            rol != "Usuario")
+        {
+            return Forbid();
+        }
+
+        var ticket = await _context.Tickets
+            .AsNoTracking()
+            .FirstOrDefaultAsync(t => t.Id == ticketId);
+
+        if (ticket == null)
+        {
+            return NotFound(new
+            {
+                mensaje = "El ticket no existe."
+            });
+        }
+
+        // Comprobar que el usuario tenga acceso al ticket.
+        if (!TienePermisoSobreTicket(ticket, rol, usuarioId))
         {
             return Forbid();
         }
 
         var comentarios = await _context.ComentariosTickets
-            .Include(c => c.Usuario)
+            .AsNoTracking()
             .Where(c => c.TicketId == ticketId)
             .OrderBy(c => c.Fecha)
+            .ThenBy(c => c.Id)
             .Select(c => new
             {
                 id = c.Id,

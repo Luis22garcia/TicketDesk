@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TicketDesk.Api.Data;
@@ -9,7 +10,7 @@ namespace TicketDesk.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize(Roles = "Administrador")]
+[Authorize]
 public class CategoriasController : ControllerBase
 {
     private readonly TicketDeskDbContext _context;
@@ -22,12 +23,39 @@ public class CategoriasController : ControllerBase
     // ========================================
     // GET: api/categorias
     // Solo Administrador
+    // Consulta todas las categorías,
+    // incluidas las desactivadas.
     // ========================================
 
     [HttpGet]
+    [Authorize(Roles = "Administrador")]
     public async Task<IActionResult> GetCategorias()
     {
         var categorias = await _context.Categorias
+            .Select(c => new
+            {
+                c.Id,
+                c.Nombre,
+                c.Descripcion,
+                c.Activa
+            })
+            .ToListAsync();
+
+        return Ok(categorias);
+    }
+
+    // ========================================
+    // GET: api/categorias/activas
+    // Administrador, Agente y Usuario
+    // Solo devuelve categorías activas.
+    // ========================================
+
+    [HttpGet("activas")]
+    [Authorize(Roles = "Administrador,Agente,Usuario")]
+    public async Task<IActionResult> GetCategoriasActivas()
+    {
+        var categorias = await _context.Categorias
+            .Where(c => c.Activa)
             .Select(c => new
             {
                 c.Id,
@@ -45,7 +73,8 @@ public class CategoriasController : ControllerBase
     // Solo Administrador
     // ========================================
 
-    [HttpGet("{id}")]
+    [HttpGet("{id:int}")]
+    [Authorize(Roles = "Administrador")]
     public async Task<IActionResult> GetCategoria(int id)
     {
         var categoria = await _context.Categorias
@@ -76,6 +105,7 @@ public class CategoriasController : ControllerBase
     // ========================================
 
     [HttpPost]
+    [Authorize(Roles = "Administrador")]
     public async Task<IActionResult> CreateCategoria(
         CreateCategoriaDto dto)
     {
@@ -124,7 +154,8 @@ public class CategoriasController : ControllerBase
     // Solo Administrador
     // ========================================
 
-    [HttpPut("{id}")]
+    [HttpPut("{id:int}")]
+    [Authorize(Roles = "Administrador")]
     public async Task<IActionResult> UpdateCategoria(
         int id,
         UpdateCategoriaDto dto)
@@ -170,12 +201,11 @@ public class CategoriasController : ControllerBase
     // ========================================
     // DELETE: api/categorias/1
     // Solo Administrador
-    //
-    // No eliminamos físicamente.
-    // Desactivamos la categoría.
+    // Desactiva la categoría sin eliminarla.
     // ========================================
 
-    [HttpDelete("{id}")]
+    [HttpDelete("{id:int}")]
+    [Authorize(Roles = "Administrador")]
     public async Task<IActionResult> DeleteCategoria(int id)
     {
         var categoria = await _context.Categorias

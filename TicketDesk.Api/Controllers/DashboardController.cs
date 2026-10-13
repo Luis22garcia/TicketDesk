@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TicketDesk.Api.Data;
@@ -7,7 +9,7 @@ namespace TicketDesk.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize(Roles = "Administrador,Agente")]
+[Authorize(Roles = "Administrador,Agente,Usuario")]
 public class DashboardController : ControllerBase
 {
     private readonly TicketDeskDbContext _context;
@@ -17,40 +19,74 @@ public class DashboardController : ControllerBase
         _context = context;
     }
 
-    // ========================================
-    // GET: api/dashboard
-    //
-    // Administrador y Agente
-    // ========================================
-
     [HttpGet]
     public async Task<IActionResult> GetDashboard()
     {
-        var totalTickets = await _context.Tickets.CountAsync();
+        // Identificar el rol autenticado.
+        var esAdministrador = User.IsInRole("Administrador");
+        var esAgente = User.IsInRole("Agente");
+        var esUsuario = User.IsInRole("Usuario");
 
-        var ticketsAbiertos = await _context.Tickets
+        // Consulta base de tickets.
+        IQueryable<TicketDesk.Api.Models.Ticket> consultaTickets =
+            _context.Tickets.AsNoTracking();
+
+        // Agente y Usuario necesitan identificarse mediante su token.
+        if (esAgente || esUsuario)
+        {
+            var idTexto =
+                User.FindFirstValue(ClaimTypes.NameIdentifier)
+                ?? User.FindFirstValue("sub")
+                ?? User.FindFirstValue("id");
+
+            if (!int.TryParse(idTexto, out var id))
+            {
+                return Unauthorized(new
+                {
+                    mensaje = "No fue posible identificar al usuario del token."
+                });
+            }
+
+            if (esAgente)
+            {
+                // El agente solo ve los tickets asignados a él.
+                consultaTickets = consultaTickets
+                    .Where(t => t.AgenteId == id);
+            }
+            else
+            {
+                // El usuario solo ve los tickets que él registró.
+                consultaTickets = consultaTickets
+                    .Where(t => t.UsuarioId == id);
+            }
+        }
+
+        // Estadísticas generales según los tickets permitidos para el rol.
+        var totalTickets = await consultaTickets.CountAsync();
+
+        var ticketsAbiertos = await consultaTickets
             .CountAsync(t => t.Estado == "Abierto");
 
-        var ticketsEnProceso = await _context.Tickets
+        var ticketsEnProceso = await consultaTickets
             .CountAsync(t => t.Estado == "En proceso");
 
-        var ticketsResueltos = await _context.Tickets
+        var ticketsResueltos = await consultaTickets
             .CountAsync(t => t.Estado == "Resuelto");
 
-        var ticketsCerrados = await _context.Tickets
+        var ticketsCerrados = await consultaTickets
             .CountAsync(t => t.Estado == "Cerrado");
 
-        var ticketsAlta = await _context.Tickets
+        var ticketsAlta = await consultaTickets
             .CountAsync(t => t.Prioridad == "Alta");
 
-        var ticketsMedia = await _context.Tickets
+        var ticketsMedia = await consultaTickets
             .CountAsync(t => t.Prioridad == "Media");
 
-        var ticketsBaja = await _context.Tickets
+        var ticketsBaja = await consultaTickets
             .CountAsync(t => t.Prioridad == "Baja");
 
-        var ticketsPorCategoria = await _context.Tickets
-            .Include(t => t.Categoria)
+        // Tickets agrupados por categoría.
+        var ticketsPorCategoria = await consultaTickets
             .GroupBy(t => new
             {
                 t.CategoriaId,
@@ -66,7 +102,8 @@ public class DashboardController : ControllerBase
             })
             .ToListAsync();
 
-        var ticketsPorEstado = await _context.Tickets
+        // Tickets agrupados por estado.
+        var ticketsPorEstado = await consultaTickets
             .GroupBy(t => t.Estado)
             .Select(g => new
             {
@@ -76,13 +113,17 @@ public class DashboardController : ControllerBase
             .OrderByDescending(x => x.cantidad)
             .ToListAsync();
 
-        var usuariosActivos = await _context.Usuarios
-             .CountAsync(u => u.Activo);
+        // Solo el Administrador obtiene estadísticas globales de usuarios.
+        var usuariosActivos = esAdministrador
+            ? await _context.Usuarios.CountAsync(u => u.Activo)
+            : 0;
 
-        var usuariosInactivos = await _context.Usuarios
-             .CountAsync(u => !u.Activo);
+        var usuariosInactivos = esAdministrador
+            ? await _context.Usuarios.CountAsync(u => !u.Activo)
+            : 0;
 
-        var ticketsRecientes = await _context.Tickets
+        // Últimos cinco tickets dentro del alcance del rol.
+        var ticketsRecientes = await consultaTickets
             .Include(t => t.Usuario)
             .Include(t => t.Categoria)
             .OrderByDescending(t => t.FechaCreacion)
@@ -118,7 +159,6 @@ public class DashboardController : ControllerBase
             usuariosActivos,
             usuariosInactivos,
             ticketsRecientes
-
         });
     }
 }

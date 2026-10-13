@@ -1317,13 +1317,19 @@ Authorization: Bearer {{token}}
 
 ### prueba de swagger sin token valido
 GET https://localhost:7155/api/Usuarios 
-Authorization: Bearer novalido 
+Authorization: Bearer novalido
 
+### prueba notificaciones 
+POST {{TicketDesk.Api_HostAddress}}/api/auth/login
+Content-Type: application/json
 
+{
+  "email": "admin@ticketdesk.com",
+  "password": "Admin123"
+}
 
-
-
-
-
+### obtener notificacionnd de admin
+GET {{TicketDesk.Api_HostAddress}}/api/Notificaciones
+Authorization: Bearer {{token}}
 
 

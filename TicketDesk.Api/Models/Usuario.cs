@@ -1,4 +1,5 @@
-﻿namespace TicketDesk.Api.Models;
+﻿
+namespace TicketDesk.Api.Models;
 
 public class Usuario
 {
